@@ -1,66 +1,11 @@
 import os
 import re
 import ast as A
-from enum import Enum
 from functools import lru_cache
 from typing import List, Set, Union
-from hashlib import sha256 as _hash
 
-def sha256(x: str):
-  return _hash(x.encode()).hexdigest()
-
-class IndexTypes(Enum):
-  """
-  This is our list of index types, these can be used to search through things in the AST. Here's some description on
-  what each of these mean. There are a few special ones for convinience:
-  - FILE: which means that the current location is the file itself, also can be considered as ast.Module
-  - DOCSTRING: which is a special type of expression that is a docstring, is defined to use a different parsing logic
-  """
-  FUNCTION = A.FunctionDef
-  CLASS = A.ClassDef
-  VARIABLE = A.Name
-  IMPORT = A.Import
-  IMPORT_FROM = A.ImportFrom
-  ASSIGN = A.Assign
-  EXPRESSION = A.Expr
-  IF = A.If
-  FILE = "file"
-  DOCSTRING = "__doc__"
-
-  def all():
-    """returns all the valid index types"""
-    return [
-      IndexTypes.FUNCTION,
-      IndexTypes.CLASS,
-      IndexTypes.VARIABLE,
-      IndexTypes.IMPORT,
-      IndexTypes.IMPORT_FROM,
-      IndexTypes.ASSIGN,
-      IndexTypes.EXPRESSION,
-      IndexTypes.IF,
-      IndexTypes.FILE
-    ]
-
-
-def get_code_section(node: A.AST, code_lines: List[str]):
-  """generic function to return the code section for a node"""
-  if type(code_lines) == str:
-    code_lines = code_lines.splitlines()
-  else:
-    assert type(code_lines) == list and type(code_lines[0]) == str
-  sl, so, el, eo = node.lineno, node.col_offset, node.end_lineno, node.end_col_offset
-  code = ""
-  if sl == el:
-    code = code_lines[sl-1][so:eo]
-  else:
-    for i in range(sl - 1, el, 1):
-      if i == sl - 1:
-        code += code_lines[i][so:]
-      elif i == el - 1:
-        code += "\n" + code_lines[i][:eo]
-      else:
-        code += "\n" + code_lines[i]
-  return code
+from astea.index_types import IndexTypes
+from astea.utils import sha256, get_code_section
 
 
 
