@@ -1,0 +1,19 @@
+name: Build and Deploy nbox
+on:
+  push:
+    branches: [master]
+    paths:
+      -"pyproject.toml"
+jobs:
+  build:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the files
+        uses: actions/checkout@v2
+
+      - name: Install poetry
+        run: pipx install poetry==1.2.2
+      
+      - name: Push
+        run: poetry publish --build -u ${{secrets.YB_PYPI_USERNAME}} -p ${{secrets.YB_PYPI_PWD}}

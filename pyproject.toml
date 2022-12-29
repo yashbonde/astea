@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "astea"
+version = "1.0"
+description = "A simple python based code traversal engine built with AST"
+authors = ["yashbonde <bonde.yash97@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/yashbonde/astea"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+
+
+[build-system]
+requires = [
+  "poetry-core>=1.0.0",
+  "setuptools"
+]
+build-backend = "poetry.core.masonry.api"
