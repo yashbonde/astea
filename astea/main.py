@@ -121,48 +121,59 @@ class Astea:
     items = set()
     if hasattr(self.node, 'body'):
       for i, n in enumerate(self.node.body):
-        if type(n) == A.FunctionDef:
-          tea = Astea(name=n.name, type=IndexTypes.FUNCTION, node=n, code_lines=self.code_lines, order_index=i)
-          items.add(tea)
-        elif type(n) == A.ClassDef:
-          tea = Astea(name=n.name, type=IndexTypes.CLASS, node=n, code_lines=self.code_lines, order_index=i)
-          items.add(tea)
-        elif type(n) == A.Import:
-          for j, nn in enumerate(n.names):
-            tea = Astea(name=nn.name, type=IndexTypes.IMPORT, node=n, code_lines=self.code_lines, order_index=i+j)
+        try:
+          if type(n) == A.FunctionDef:
+            tea = Astea(name=n.name, type=IndexTypes.FUNCTION, node=n, code_lines=self.code_lines, order_index=i)
             items.add(tea)
-        elif type(n) == A.ImportFrom:
-          for j, nn in enumerate(n.names):
-            tea = Astea(name=nn.name, type=IndexTypes.IMPORT_FROM, node=n, code_lines=self.code_lines, order_index=i+j)
+          elif type(n) == A.ClassDef:
+            tea = Astea(name=n.name, type=IndexTypes.CLASS, node=n, code_lines=self.code_lines, order_index=i)
             items.add(tea)
-        elif type(n) == A.Expr:
-          tea = Astea(name=n.value, type=IndexTypes.EXPRESSION, node=n, code_lines=self.code_lines, order_index=i)
-          items.add(tea)
-        
-        # if this node is a class and node 'n' is a staticmethod then assign is considered
-        elif type(n) == A.Assign:
-          target = n.targets[0]
-          if type(target) == A.Tuple:
-            # iterate over the tuple and add each item as VARIABLE
-            for j, nn in enumerate(target.elts):
-              tea = Astea(name=nn.id, type=IndexTypes.VARIABLE, node=n, code_lines=self.code_lines, order_index=i+j)
+          elif type(n) == A.Import:
+            for j, nn in enumerate(n.names):
+              tea = Astea(name=nn.name, type=IndexTypes.IMPORT, node=n, code_lines=self.code_lines, order_index=i+j)
               items.add(tea)
-            continue
-          elif type(target) == A.Name:
-            tea = Astea(name=target.id, type=IndexTypes.VARIABLE, node=n, code_lines=self.code_lines, order_index=i)
-            items.add(tea)
-          else:
-            raise ValueError(f"Unknown type {type(target)} for target {target}")
-          if (type(self.node) == A.ClassDef or type(self.node) == A.Module):
-            try:
-              # this .id is very painful
-              tea = Astea(name=n.targets[0].id, type=IndexTypes.ASSIGN, node=n, code_lines=self.code_lines, order_index=i)
+          elif type(n) == A.ImportFrom:
+            for j, nn in enumerate(n.names):
+              tea = Astea(name=nn.name, type=IndexTypes.IMPORT_FROM, node=n, code_lines=self.code_lines, order_index=i+j)
               items.add(tea)
-            except:
-              # though we eventually want to get away with this try/except, we will keep it just in case
+          elif type(n) == A.Expr:
+            tea = Astea(name=n.value, type=IndexTypes.EXPRESSION, node=n, code_lines=self.code_lines, order_index=i)
+            items.add(tea)
+          
+          # if this node is a class and node 'n' is a staticmethod then assign is considered
+          elif type(n) == A.Assign:
+            target = n.targets[0]
+            if type(target) == A.Tuple:
+              # iterate over the tuple and add each item as VARIABLE
+              for j, nn in enumerate(target.elts):
+                if hasattr(nn, 'id'):
+                  tea = Astea(name=nn.id, type=IndexTypes.VARIABLE, node=n, code_lines=self.code_lines, order_index=i+j)
+                  items.add(tea)
+                else:
+                  print("---->>> ERRROR", nn, nn.__dict__)
+              continue
+            elif type(target) == A.Name:
+              tea = Astea(name=target.id, type=IndexTypes.VARIABLE, node=n, code_lines=self.code_lines, order_index=i)
+              items.add(tea)
+            else:
+              # raise ValueError(f"Unknown type {type(target)} for target {target}")
               pass
-        else:
-          continue
+            if (type(self.node) == A.ClassDef or type(self.node) == A.Module):
+              try:
+                # this .id is very painful
+                tea = Astea(name=n.targets[0].id, type=IndexTypes.ASSIGN, node=n, code_lines=self.code_lines, order_index=i)
+                items.add(tea)
+              except:
+                # though we eventually want to get away with this try/except, we will keep it just in case
+                pass
+          else:
+            continue
+        except Exception as e:
+          print(f"ERROR: {e}")
+          print(f"ERROR: {n}")
+          print(f"ERROR: {n.__dict__}")
+          print(f"ERROR: {self.node}")
+          print(f"ERROR: {self.node.__dict__}")
     items = sorted(list(items), key=lambda x: x.order_index)
     return items
 
